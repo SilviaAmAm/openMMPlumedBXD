@@ -1,3 +1,6 @@
+#ifndef OPENMM_PLUMEDFORCEBXD_H_
+#define OPENMM_PLUMEDFORCEBXD_H_
+
 /* -------------------------------------------------------------------------- *
  *                                   OpenMM                                   *
  * -------------------------------------------------------------------------- *
@@ -29,44 +32,57 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "internal/PlumedForceImplBXD.h"
-#include "PlumedKernels.h"
-#include "openmm/internal/ContextImpl.h"
+#include "openmm/Context.h"
+#include "openmm/Force.h"
+#include <string>
+#include "internal/windowsExportPlumed.h"
 
-using namespace PlumedPlugin;
-using namespace OpenMM;
-using namespace std;
+namespace PlumedPlugin {
 
-PlumedForceImplBXD::PlumedForceImplBXD(const PlumedForceBXD& owner) : owner(owner) {
-}
+/**
+ * This class implements a connection between OpenMM and PLUMED (http://www.plumed.org).  It is a Force object that you
+ * add to the System with addForce().  Its behavior is defined by a PLUMED input script, which you pass to the constructor
+ * as a string.  Within that script you can specify bias forces to apply to the System, as well as values to write to
+ * output files every time the force is computed.
+ *
+ * For example, the following code performs metadynamics based on the distance between atoms 0 and 9:
+ *
+ * <tt><pre>
+ * string script =
+ *     "d: DISTANCE ATOMS=1,10\n"
+ *     "METAD ARG=d SIGMA=0.2 HEIGHT=0.3 PACE=500";
+ * system.addForce(new PlumedForceBXD(script));
+ * </pre></tt>
+ *
+ * Be aware the PLUMED numbers atoms starting from 1, whereas OpenMM numbers them starting from 0.
+ */
 
-PlumedForceImplBXD::~PlumedForceImplBXD() {
-}
+class OPENMM_EXPORT_PLUMED PlumedForceBXD : public OpenMM::Force {
+public:
+    /**
+     * Create a PlumedForceBXD.
+     *
+     * @param script    the PLUMED input script
+     */
+    PlumedForceBXD(const std::string& script);
+    /**
+     * Get the PLUMED input script
+     */
+    const std::string& getScript() const;
+    /**
+     * Returns true if the force uses periodic boundary conditions and false otherwise. Your force should implement this
+     * method appropriately to ensure that `System.usesPeriodicBoundaryConditions()` works for all systems containing
+     * your force.
+     */
+    bool usesPeriodicBoundaryConditions() const {
+        return false;
+    }
+protected:
+    OpenMM::ForceImpl* createImpl() const;
+private:
+    std::string script;
+};
 
-void PlumedForceImplBXD::initialize(ContextImpl& context) {
-    kernel = context.getPlatform().createKernel(CalcPlumedForceKernelBXD::Name(), context);
-    kernel.getAs<CalcPlumedForceKernelBXD>().initialize(context.getSystem(), owner);
-}
+} // namespace PlumedPlugin
 
-void updateContextState(OpenMM::ContextImpl& context)
-{
-    // Set plumed variables - Need to do kernel.getAs<CalcPlumedForceKernel>().execute(context, includeForces, includeEnergy) but the execute function needs
-    // to be modified so that only the first part of it is used (the part that does the setting of the plumed variables). 
-    // No need to calculate forces and energies, but need to calculate collective variable.
-
-
-    
-
-}
-
-double PlumedForceImplBXD::calcForcesAndEnergy(ContextImpl& context, bool includeForces, bool includeEnergy, int groups) {
-    if ((groups&(1<<owner.getForceGroup())) != 0)
-        return kernel.getAs<CalcPlumedForceKernelBXD>().execute(context, includeForces, includeEnergy);
-    return 0.0;
-}
-
-std::vector<std::string> PlumedForceImplBXD::getKernelNames() {
-    vector<string> names;
-    names.push_back(CalcPlumedForceKernelBXD::Name());
-    return names;
-}
+#endif /*OPENMM_PLUMEDFORCEBXD_H_*/

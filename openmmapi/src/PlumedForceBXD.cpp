@@ -29,44 +29,23 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
+#include "PlumedForceBXD.h"
 #include "internal/PlumedForceImplBXD.h"
-#include "PlumedKernels.h"
-#include "openmm/internal/ContextImpl.h"
 
 using namespace PlumedPlugin;
 using namespace OpenMM;
 using namespace std;
 
-PlumedForceImplBXD::PlumedForceImplBXD(const PlumedForceBXD& owner) : owner(owner) {
-}
+PlumedForceBXD::PlumedForceBXD(const string& script) : 
+script(script) 
+{}
 
-PlumedForceImplBXD::~PlumedForceImplBXD() {
-}
-
-void PlumedForceImplBXD::initialize(ContextImpl& context) {
-    kernel = context.getPlatform().createKernel(CalcPlumedForceKernelBXD::Name(), context);
-    kernel.getAs<CalcPlumedForceKernelBXD>().initialize(context.getSystem(), owner);
-}
-
-void updateContextState(OpenMM::ContextImpl& context)
+const string& PlumedForceBXD::getScript() const 
 {
-    // Set plumed variables - Need to do kernel.getAs<CalcPlumedForceKernel>().execute(context, includeForces, includeEnergy) but the execute function needs
-    // to be modified so that only the first part of it is used (the part that does the setting of the plumed variables). 
-    // No need to calculate forces and energies, but need to calculate collective variable.
-
-
-    
-
+    return script;
 }
 
-double PlumedForceImplBXD::calcForcesAndEnergy(ContextImpl& context, bool includeForces, bool includeEnergy, int groups) {
-    if ((groups&(1<<owner.getForceGroup())) != 0)
-        return kernel.getAs<CalcPlumedForceKernelBXD>().execute(context, includeForces, includeEnergy);
-    return 0.0;
-}
-
-std::vector<std::string> PlumedForceImplBXD::getKernelNames() {
-    vector<string> names;
-    names.push_back(CalcPlumedForceKernelBXD::Name());
-    return names;
+ForceImpl* PlumedForceBXD::createImpl() const 
+{
+    return new PlumedForceImplBXD(*this);
 }

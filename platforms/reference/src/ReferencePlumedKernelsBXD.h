@@ -1,3 +1,6 @@
+#ifndef REFERENCE_PLUMED_KERNELS_H_
+#define REFERENCE_PLUMED_KERNELS_H_
+
 /* -------------------------------------------------------------------------- *
  *                                   OpenMM                                   *
  * -------------------------------------------------------------------------- *
@@ -29,44 +32,51 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "internal/PlumedForceImplBXD.h"
-#include "PlumedKernels.h"
-#include "openmm/internal/ContextImpl.h"
+#include "PlumedKernelsBXD.h"
+#include "openmm/Platform.h"
+#include "wrapper/Plumed.h"
+#include <vector>
 
-using namespace PlumedPlugin;
-using namespace OpenMM;
-using namespace std;
+namespace PlumedPlugin {
 
-PlumedForceImplBXD::PlumedForceImplBXD(const PlumedForceBXD& owner) : owner(owner) {
-}
+/**
+ * This kernel is invoked by PlumedForce to calculate the forces acting on the system and the energy of the system.
+ */
+class ReferenceCalcPlumedForceKernelBXD : public CalcPlumedForceKernelBXD {
+public:
+    ReferenceCalcPlumedForceKernelBXD(std::string name, const OpenMM::Platform& platform, OpenMM::ContextImpl& contextImpl);
+    ~ReferenceCalcPlumedForceKernelBXD();
+    /**
+     * Initialize the kernel.
+     *
+     * @param system     the System this kernel will be applied to
+     * @param force      the PlumedForce this kernel will be used for
+     */
+    void initialize(const OpenMM::System& system, const PlumedForce& force);
+    /**
+     * Execute the kernel to calculate the forces and/or energy.
+     *
+     * @param context        the context in which to execute this kernel
+     * @param includeForces  true if forces should be calculated
+     * @param includeEnergy  true if the energy should be calculated
+     * @return the potential energy due to the force
+     */
+    double execute(OpenMM::ContextImpl& context, bool includeForces, bool includeEnergy);
+    /**
+     * Copy changed parameters over to a context.
+     *
+     * @param context    the context to copy parameters to
+     * @param force      the PlumedForce to copy the parameters from
+     */
+    void copyParametersToContext(OpenMM::ContextImpl& context, const PlumedForce& force);
+private:
+    plumed plumedmain;
+    bool hasInitialized, usesPeriodic;
+    OpenMM::ContextImpl& contextImpl;
+    int lastStepIndex;
+    std::vector<double> masses, charges;
+};
 
-PlumedForceImplBXD::~PlumedForceImplBXD() {
-}
+} // namespace PlumedPlugin
 
-void PlumedForceImplBXD::initialize(ContextImpl& context) {
-    kernel = context.getPlatform().createKernel(CalcPlumedForceKernelBXD::Name(), context);
-    kernel.getAs<CalcPlumedForceKernelBXD>().initialize(context.getSystem(), owner);
-}
-
-void updateContextState(OpenMM::ContextImpl& context)
-{
-    // Set plumed variables - Need to do kernel.getAs<CalcPlumedForceKernel>().execute(context, includeForces, includeEnergy) but the execute function needs
-    // to be modified so that only the first part of it is used (the part that does the setting of the plumed variables). 
-    // No need to calculate forces and energies, but need to calculate collective variable.
-
-
-    
-
-}
-
-double PlumedForceImplBXD::calcForcesAndEnergy(ContextImpl& context, bool includeForces, bool includeEnergy, int groups) {
-    if ((groups&(1<<owner.getForceGroup())) != 0)
-        return kernel.getAs<CalcPlumedForceKernelBXD>().execute(context, includeForces, includeEnergy);
-    return 0.0;
-}
-
-std::vector<std::string> PlumedForceImplBXD::getKernelNames() {
-    vector<string> names;
-    names.push_back(CalcPlumedForceKernelBXD::Name());
-    return names;
-}
+#endif /*REFERENCE_PLUMED_KERNELS_H_*/
