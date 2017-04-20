@@ -33,6 +33,7 @@ This implements the new Kernel that is used in PlumedForceImplBXD.cpp in the ini
 **/Users/walfits/OpenMM-from-src/Source/openmm-plumed/platforms/reference/src/ReferencePlumedKernelsBXD.h**
 
 This implements a class that inherits from CalcPlumedForceKernelBXD. It is the class that has the functions to update the state in plumed.
+In this class, two new functions are created: passToPlumed_first() and passToPlumed(). These pass to Plumed information about the system positions and velocities so that Plumed can use the collective variables and constraints can be checked.
 
 
 
