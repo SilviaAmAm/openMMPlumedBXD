@@ -114,6 +114,21 @@ void ReferenceCalcPlumedForceKernelBXD::initialize(const System& system, const P
     }
 }
 
+// ************************* New functions *********************
+
+void passToPlumed_first()
+{
+
+}
+
+void passToPlumed()
+{
+
+}
+
+// ***************************************************************
+
+
 double ReferenceCalcPlumedForceKernelBXD::execute(ContextImpl& context, bool includeForces, bool includeEnergy) {
     // Pass the current state to PLUMED.
 

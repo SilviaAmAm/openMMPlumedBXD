@@ -53,6 +53,18 @@ public:
      * @param force      the PlumedForce this kernel will be used for
      */
     void initialize(const OpenMM::System& system, const PlumedForce& force);
+    /*
+      New functions that are called from updateContextState(). (The initialise function has already been run)
+      They pass the positions and velocities to Plumed. 
+      The first one is called on the first step.
+      The second one is called for the rest of the simulation.
+    */
+
+    void passToPlumed_first();
+
+    void passToPlumed();
+
+
     /**
      * Execute the kernel to calculate the forces and/or energy.
      *
