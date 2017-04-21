@@ -1,3 +1,6 @@
+#ifndef OPENMM_REFERENCEPlumedKERNELFACTORYBXD_H_
+#define OPENMM_REFERENCEPlumedKERNELFACTORYBXD_H_
+
 /* -------------------------------------------------------------------------- *
  *                                   OpenMM                                   *
  * -------------------------------------------------------------------------- *
@@ -29,24 +32,19 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "PlumedForceBXD.h"
-#include "internal/PlumedForceImplBXD.h"
+#include "openmm/KernelFactory.h"
 
-using namespace PlumedPlugin;
-using namespace OpenMM;
-using namespace std;
+namespace OpenMM {
 
-PlumedForceBXD::PlumedForceBXD(const string& script) : 
-script(script),
-hint("Im the BXD force!") 
-{}
+/**
+ * This KernelFactory creates kernels for the reference implementation of the Plumed plugin.
+ */
 
-const string& PlumedForceBXD::getScript() const 
-{
-    return script;
-}
+class ReferencePlumedKernelFactoryBXD : public KernelFactory {
+public:
+    KernelImpl* createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const;
+};
 
-ForceImpl* PlumedForceBXD::createImpl() const 
-{
-    return new PlumedForceImplBXD(*this);
-}
+} // namespace OpenMM
+
+#endif /*OPENMM_REFERENCEPlumedKERNELFACTORYBXD_H_*/

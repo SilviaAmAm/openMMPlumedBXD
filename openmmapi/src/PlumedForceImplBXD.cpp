@@ -30,7 +30,7 @@
  * -------------------------------------------------------------------------- */
 
 #include "internal/PlumedForceImplBXD.h"
-#include "PlumedKernels.h"
+#include "PlumedKernelsBXD.h"
 #include "openmm/internal/ContextImpl.h"
 
 using namespace PlumedPlugin;
@@ -48,15 +48,11 @@ void PlumedForceImplBXD::initialize(ContextImpl& context) {
     kernel.getAs<CalcPlumedForceKernelBXD>().initialize(context.getSystem(), owner);
 }
 
-void updateContextState(OpenMM::ContextImpl& context)
+void PlumedForceImplBXD::updateContextState(OpenMM::ContextImpl& context)
 {
     // Set plumed variables - Need to do kernel.getAs<CalcPlumedForceKernel>().execute(context, includeForces, includeEnergy) but the execute function needs
     // to be modified so that only the first part of it is used (the part that does the setting of the plumed variables). 
     // No need to calculate forces and energies, but need to calculate collective variable.
-
-
-    
-
 }
 
 double PlumedForceImplBXD::calcForcesAndEnergy(ContextImpl& context, bool includeForces, bool includeEnergy, int groups) {

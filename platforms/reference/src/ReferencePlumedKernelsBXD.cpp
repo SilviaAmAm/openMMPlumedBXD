@@ -57,7 +57,12 @@ static RealVec* extractBoxVectors(ContextImpl& context) {
     return (RealVec*) data->periodicBoxVectors;
 }
 
-ReferenceCalcPlumedForceKernelBXD::ReferenceCalcPlumedForceKernelBXD(std::string name, const OpenMM::Platform& platform, OpenMM::ContextImpl& contextImpl) : CalcPlumedForceKernel(name, platform), contextImpl(contextImpl), hasInitialized(false), lastStepIndex(0) {
+ReferenceCalcPlumedForceKernelBXD::ReferenceCalcPlumedForceKernelBXD(std::string name, const OpenMM::Platform& platform, OpenMM::ContextImpl& contextImpl): 
+CalcPlumedForceKernelBXD(name, platform), 
+contextImpl(contextImpl), 
+hasInitialized(false), 
+lastStepIndex(0) 
+{
 }
 
 ReferenceCalcPlumedForceKernelBXD::~ReferenceCalcPlumedForceKernelBXD() {
@@ -65,7 +70,7 @@ ReferenceCalcPlumedForceKernelBXD::~ReferenceCalcPlumedForceKernelBXD() {
         plumed_finalize(plumedmain);
 }
 
-void ReferenceCalcPlumedForceKernelBXD::initialize(const System& system, const PlumedForce& force) {
+void ReferenceCalcPlumedForceKernelBXD::initialize(const System& system, const PlumedForceBXD& force) {
     // Construct and initialize the PLUMED interface object.
 
     plumedmain = plumed_create();
@@ -116,12 +121,30 @@ void ReferenceCalcPlumedForceKernelBXD::initialize(const System& system, const P
 
 // ************************* New functions *********************
 
-void passToPlumed_first()
+void ReferenceCalcPlumedForceKernelBXD::passToPlumed_first(OpenMM::ContextImpl& context)
 {
+      // Pass the current state to PLUMED.
 
+    ReferencePlatform::PlatformData* data = reinterpret_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    int step = data->stepCount;
+    plumed_cmd(plumedmain, "setStep", &step);
+    plumed_cmd(plumedmain, "setMasses", &masses[0]);
+    if (charges.size() > 0)
+        plumed_cmd(plumedmain, "setCharges", &charges[0]);
+    vector<RealVec>& pos = extractPositions(context);
+    plumed_cmd(plumedmain, "setPositions", &pos[0][0]);
+    vector<RealVec>& force = extractForces(context);
+    plumed_cmd(plumedmain, "setForces", &force[0][0]);
+    if (usesPeriodic) 
+    {
+        RealVec* boxVectors = extractBoxVectors(context);
+        plumed_cmd(plumedmain, "setBox", &boxVectors[0][0]);
+    }
+    double virial[9];
+    plumed_cmd(plumedmain, "setVirial", &virial);
 }
 
-void passToPlumed()
+void ReferenceCalcPlumedForceKernelBXD::passToPlumed()
 {
 
 }

@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------------- *
- *                                   OpenMM                                   *
+ *                              OpenMMPlumed                                   *
  * -------------------------------------------------------------------------- *
  * This is part of the OpenMM molecular simulation toolkit originating from   *
  * Simbios, the NIH National Center for Physics-Based Simulation of           *
@@ -29,24 +29,35 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "PlumedForceBXD.h"
-#include "internal/PlumedForceImplBXD.h"
+#include "../include/ReferencePlumedKernelFactoryBXD.h"
+#include "ReferencePlumedKernelsBXD.h"
+#include "openmm/reference/ReferencePlatform.h"
+#include "openmm/internal/ContextImpl.h"
+#include "openmm/OpenMMException.h"
 
 using namespace PlumedPlugin;
 using namespace OpenMM;
-using namespace std;
 
-PlumedForceBXD::PlumedForceBXD(const string& script) : 
-script(script),
-hint("Im the BXD force!") 
-{}
 
-const string& PlumedForceBXD::getScript() const 
-{
-    return script;
+extern "C" OPENMM_EXPORT void registerPlatforms() {}
+
+extern "C" OPENMM_EXPORT void registerKernelFactories() {
+    for (int i = 0; i < Platform::getNumPlatforms(); i++) {
+        Platform& platform = Platform::getPlatform(i);
+        if (dynamic_cast<ReferencePlatform*>(&platform) != NULL) {
+            ReferencePlumedKernelFactoryBXD* factory = new ReferencePlumedKernelFactoryBXD();
+            platform.registerKernelFactory(CalcPlumedForceKernelBXD::Name(), factory);
+        }
+    }
 }
 
-ForceImpl* PlumedForceBXD::createImpl() const 
-{
-    return new PlumedForceImplBXD(*this);
+extern "C" OPENMM_EXPORT void registerPlumedReferenceKernelFactories() {
+    registerKernelFactories();
+}
+
+KernelImpl* ReferencePlumedKernelFactoryBXD::createKernelImpl(std::string name, const Platform& platform, ContextImpl& context) const {
+    ReferencePlatform::PlatformData& data = *static_cast<ReferencePlatform::PlatformData*>(context.getPlatformData());
+    if (name == CalcPlumedForceKernelBXD::Name())
+        return new ReferenceCalcPlumedForceKernelBXD(name, platform, context);
+    throw OpenMMException((std::string("Tried to create kernel with illegal kernel name '")+name+"'").c_str());
 }

@@ -64,6 +64,7 @@ public:
     }
     std::vector<std::string> getKernelNames();
     void updateParametersInContext(OpenMM::ContextImpl& context);
+
 private:
     const PlumedForce& owner;
     OpenMM::Kernel kernel;

@@ -35,6 +35,10 @@ This implements the new Kernel that is used in PlumedForceImplBXD.cpp in the ini
 This implements a class that inherits from CalcPlumedForceKernelBXD. It is the class that has the functions to update the state in plumed.
 In this class, two new functions are created: passToPlumed_first() and passToPlumed(). These pass to Plumed information about the system positions and velocities so that Plumed can use the collective variables and constraints can be checked.
 
+** ReferencePlumedKernelFactory.cpp ** 
+
+This had to be modified to solve the problem that otherwise one of the external C functions is defined twice in a different way (as I had to redefine it in ReferencePlumedKernelBXD.cpp because the new kernel BXD has to be defined)
+
 
 
 

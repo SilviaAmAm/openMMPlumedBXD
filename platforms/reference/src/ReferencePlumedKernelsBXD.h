@@ -50,9 +50,9 @@ public:
      * Initialize the kernel.
      *
      * @param system     the System this kernel will be applied to
-     * @param force      the PlumedForce this kernel will be used for
+     * @param force      the PlumedForceBXD this kernel will be used for
      */
-    void initialize(const OpenMM::System& system, const PlumedForce& force);
+    void initialize(const OpenMM::System& system, const PlumedForceBXD& force);
     /*
       New functions that are called from updateContextState(). (The initialise function has already been run)
       They pass the positions and velocities to Plumed. 
@@ -60,7 +60,7 @@ public:
       The second one is called for the rest of the simulation.
     */
 
-    void passToPlumed_first();
+    void passToPlumed_first(OpenMM::ContextImpl& context);
 
     void passToPlumed();
 
@@ -78,9 +78,9 @@ public:
      * Copy changed parameters over to a context.
      *
      * @param context    the context to copy parameters to
-     * @param force      the PlumedForce to copy the parameters from
+     * @param force      the PlumedForceBXD to copy the parameters from
      */
-    void copyParametersToContext(OpenMM::ContextImpl& context, const PlumedForce& force);
+    void copyParametersToContext(OpenMM::ContextImpl& context, const PlumedForceBXD& force);
 private:
     plumed plumedmain;
     bool hasInitialized, usesPeriodic;

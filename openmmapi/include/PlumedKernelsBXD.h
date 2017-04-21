@@ -56,7 +56,7 @@ public:
      * @param system     the System this kernel will be applied to
      * @param force      the PlumedForce this kernel will be used for
      */
-    virtual void initialize(const OpenMM::System& system, const PlumedForce& force) = 0;
+    virtual void initialize(const OpenMM::System& system, const PlumedForceBXD& force) = 0;
     /**
      * Execute the kernel to calculate the forces and/or energy.
      *

@@ -81,6 +81,7 @@ protected:
     OpenMM::ForceImpl* createImpl() const;
 private:
     std::string script;
+    std::string hint;
 };
 
 } // namespace PlumedPlugin
